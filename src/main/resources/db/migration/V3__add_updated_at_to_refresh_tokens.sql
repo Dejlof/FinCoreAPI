@@ -1,0 +1,2 @@
+ALTER TABLE refresh_tokens
+    ADD COLUMN updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW();

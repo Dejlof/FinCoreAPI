@@ -1,0 +1,94 @@
+spring:
+  application:
+    name: fincore-api
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://localhost:5433/fincore}
+    username: ${DB_USERNAME:fincore}
+    password: ${DB_PASSWORD:fincore}
+    hikari:
+      maximum-pool-size: 32
+      minimum-idle: 8
+      connection-timeout: 20000
+      idle-timeout: 600000
+      max-lifetime: 1800000
+      leak-detection-threshold: 60000
+      auto-commit: true
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    open-in-view: false
+    properties:
+      hibernate:
+        jdbc.batch_size: 25
+        order_inserts: true
+        order_updates: true
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+  cache:
+    type: caffeine
+    caffeine:
+      spec: maximumSize=1000,expireAfterWrite=10m
+
+app:
+  jwt:
+    secret: ${JWT_SECRET:ZmluY29yZS1zdXBlci1zZWNyZXQta2V5LWNoYW5nZS1tZS1pbi1wcm9kdWN0aW9uLTI1Ng==}
+    access-token-expiration-ms: 900000        # 15 minutes
+    refresh-token-expiration-ms: 604800000    # 7 days
+  rate-limit:
+    capacity: 100
+    refill-tokens: 100
+    refill-duration-seconds: 60
+  cors:
+    allowed-origins: ${CORS_ORIGINS:http://localhost:3000,http://localhost:5173}
+
+paystack:
+  secret-key: ${PAYSTACK_SECRET_KEY:sk_test_change_me}
+  public-key: ${PAYSTACK_PUBLIC_KEY:pk_test_change_me}
+  base-url: ${PAYSTACK_BASE_URL:https://api.paystack.co}
+  callback-url: ${PAYSTACK_CALLBACK_URL:http://localhost:3000/payments/callback}
+  reconciliation:
+    interval-ms: ${PAYSTACK_RECONCILE_INTERVAL_MS:300000}   # 5 minutes
+
+springdoc:
+  api-docs:
+    path: /api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+    operations-sorter: method
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+  endpoint:
+    health:
+      show-details: when-authorized
+
+logging:
+  level:
+    com.fincore.api: INFO
+    org.springframework.security: WARN
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} [%X{correlationId}] %-5level %logger{36} - %msg%n"
+    file: "%d{yyyy-MM-dd HH:mm:ss} [%X{correlationId}] %-5level %logger{36} - %msg%n"
+  file:
+    name: ${LOG_PATH:./logs}/fincore-api.log
+  logback:
+    rollingpolicy:
+      max-file-size: 10MB
+      max-history: 30
+      total-size-cap: 500MB
+
+server:
+  port: 8081
+  error:
+    include-message: never
+    include-stacktrace: never
+  compression:
+    enabled: true
+  tomcat:
+    threads:
+      max: 100
+      min-spare: 10

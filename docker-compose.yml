@@ -1,0 +1,32 @@
+services:
+  postgres:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_DB: fincore
+      POSTGRES_USER: fincore
+      POSTGRES_PASSWORD: fincore
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U fincore"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  api:
+    build: .
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      DB_URL: jdbc:postgresql://postgres:5432/fincore
+      DB_USERNAME: fincore
+      DB_PASSWORD: fincore
+      JWT_SECRET: ${JWT_SECRET:-ZmluY29yZS1zdXBlci1zZWNyZXQta2V5LWNoYW5nZS1tZS1pbi1wcm9kdWN0aW9uLTI1Ng==}
+    ports:
+      - "8080:8080"
+
+volumes:
+  pgdata:
